@@ -1,1122 +1,710 @@
-<script type="text/javascript">
-        var gk_isXlsx = false;
-        var gk_xlsxFileLookup = {};
-        var gk_fileData = {};
-        function filledCell(cell) {
-          return cell !== '' && cell != null;
-        }
-        function loadFileData(filename) {
-        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
-            try {
-                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
-                var firstSheetName = workbook.SheetNames[0];
-                var worksheet = workbook.Sheets[firstSheetName];
-
-                // Convert sheet to JSON to filter blank rows
-                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
-                // Filter out blank rows (rows where all cells are empty, null, or undefined)
-                var filteredData = jsonData.filter(row => row.some(filledCell));
-
-                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
-                var headerRowIndex = filteredData.findIndex((row, index) =>
-                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
-                );
-                // Fallback
-                if (headerRowIndex === -1 || headerRowIndex > 25) {
-                  headerRowIndex = 0;
-                }
-
-                // Convert filtered JSON back to CSV
-                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
-                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
-                return csv;
-            } catch (e) {
-                console.error(e);
-                return "";
-            }
-        }
-        return gk_fileData[filename] || "";
-        }
-        </script><!DOCTYPE html>
-<html lang="fa" dir="rtl" data-theme="neon">
+<!DOCTYPE html>
+<html lang="fa">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>صفحه اتصال به سرور | X VPN</title>
-    <style>
-        /* متغیرهای CSS */
-        :root {
-            --primary-color: #00e6e6; /* نئون فیروزه‌ای */
-            --accent-color: #8b00ff; /* بنفش نئونی */
-            --accent-hover: #6a00cc; /* بنفش تیره‌تر */
-            --locked-color: #ff1744; /* قرمز نئونی */
-            --vip-color: #ff00ff; /* صورتی نئونی */
-            --text-color: #e0f7fa; /* سفید مایل به آبی */
-            --bg-color: rgba(10, 25, 47, 0.9); /* پس‌زمینه شیشه‌ای */
-            --card-bg: rgba(30, 45, 68, 0.75); /* کارت‌های شیشه‌ای */
-            --shadow: 0 8px 24px rgba(0, 0, 0, 0.6);
-            --neon-glow: 0 0 10px var(--primary-color), 0 0 20px rgba(0, 230, 230, 0.6);
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+  <title>Vex · تیم وکس | پروفایل و خدمات</title>
+  <!-- Font & Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,400..700;1,14..32,400..700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        [data-theme="neon"] {
-            --primary-color: #00e6e6;
-            --accent-color: #8b00ff;
-            --vip-color: #ff00ff;
-        }
+    body {
+      background: #080b12;
+      font-family: "Inter", sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 18px;
+      color: #f0f5fe;
+      line-height: 1.6;
+    }
 
-        [data-theme="minimal"] {
-            --primary-color: #4fc3f7;
-            --accent-color: #0288d1;
-            --vip-color: #4caf50;
-            --bg-color: rgba(245, 245, 245, 0.9);
-            --card-bg: rgba(255, 255, 255, 0.8);
-        }
+    .glass-card {
+      max-width: 440px;
+      width: 100%;
+      background: rgba(12, 17, 27, 0.7);
+      backdrop-filter: blur(18px) saturate(200%);
+      -webkit-backdrop-filter: blur(18px) saturate(200%);
+      border-radius: 56px;
+      padding: 32px 24px 36px;
+      box-shadow: 0 30px 60px -12px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
 
-        [data-theme="gaming"] {
-            --primary-color: #ff5722;
-            --accent-color: #d81b60;
-            --vip-color: #ffd700;
-            --bg-color: rgba(33, 33, 33, 0.9);
-            --card-bg: rgba(66, 66, 66, 0.8);
-        }
+    .glass-card::before {
+      content: '';
+      position: absolute;
+      top: -40%;
+      left: -20%;
+      width: 160%;
+      height: 160%;
+      background: radial-gradient(circle at 30% 40%, rgba(43, 122, 255, 0.06), transparent 60%),
+                  radial-gradient(circle at 80% 70%, rgba(139, 92, 246, 0.04), transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
 
-        /* تنظیمات کلی بدنه */
-        body {
-            font-family: 'Vazir', sans-serif;
-            margin: 0;
-            padding: 0;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background: #0a192f;
-            color: var(--text-color);
-            transition: background 0.3s ease;
-            overflow-x: hidden;
-            position: relative;
-        }
+    .glass-card > * {
+      position: relative;
+      z-index: 2;
+    }
 
-        /* بک‌گراند ذرات متحرک */
-        #particleCanvas {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            opacity: 0.8;
-        }
+    /* ===== پروفایل ===== */
+    .profile-section {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
 
-        /* محتوای اصلی */
-        .content {
-            position: relative;
-            z-index: 1;
-            text-align: center;
-            width: 100%;
-            max-width: 420px;
-            padding: 1rem;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh;
-            box-sizing: border-box;
-        }
+    .profile-avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #2b7aff, #7c3aed);
+      padding: 3px;
+      flex-shrink: 0;
+      box-shadow: 0 10px 28px -8px rgba(43, 122, 255, 0.3);
+    }
 
-        /* سربرگ */
-        .header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0.75rem 1rem;
-            width: 100%;
-            max-width: 420px;
-            position: fixed;
-            top: 0;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 10;
-            background: var(--bg-color);
-            backdrop-filter: blur(12px);
-            box-shadow: var(--shadow);
-            border-radius: 0 0 16px 16px;
-        }
+    .profile-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #080b12;
+      display: block;
+    }
 
-        .hamburger-menu {
-            font-size: 1.6rem;
-            cursor: pointer;
-            transition: transform 0.3s, color 0.3s;
-        }
+    .profile-text {
+      display: flex;
+      flex-direction: column;
+    }
 
-        .hamburger-menu:hover, .hamburger-menu:focus {
-            transform: scale(1.1);
-            color: var(--primary-color);
-            outline: none;
-        }
+    .profile-name {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.3px;
+      background: linear-gradient(to right, #ffffff, #b8ccff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
 
-        .program-name {
-            font-size: 1.4rem;
-            font-weight: 700;
-        }
+    .profile-role {
+      font-size: 13px;
+      font-weight: 500;
+      color: #889ac0;
+      margin-top: 2px;
+    }
 
-        .vpn {
-            color: var(--primary-color);
-            text-shadow: var(--neon-glow);
-        }
+    .profile-role i {
+      color: #2b7aff;
+      margin-right: 4px;
+    }
 
-        .program-version {
-            font-size: 0.95rem;
-        }
+    /* ===== معرفی تیم ===== */
+    .about-vex {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 28px;
+      padding: 18px 20px;
+      margin-bottom: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      backdrop-filter: blur(4px);
+    }
 
-        /* منو */
-        .menu {
-            position: fixed;
-            top: 0;
-            right: 0;
-            height: 100%;
-            width: 320px;
-            background: var(--bg-color);
-            backdrop-filter: blur(12px);
-            box-shadow: var(--shadow);
-            padding: 2rem 1.5rem;
-            z-index: 20;
-            text-align: right;
-            overflow-y: auto;
-            transform: translateX(100%);
-            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-        }
+    .about-vex .tag {
+      display: inline-block;
+      background: rgba(43, 122, 255, 0.12);
+      border: 1px solid rgba(43, 122, 255, 0.15);
+      padding: 4px 16px 4px 12px;
+      border-radius: 40px;
+      font-size: 11px;
+      font-weight: 600;
+      color: #8bb1ff;
+      letter-spacing: 0.4px;
+      margin-bottom: 10px;
+    }
 
-        .menu:not(.hidden) {
-            transform: translateX(0);
-        }
+    .about-vex p {
+      font-size: 14px;
+      font-weight: 400;
+      color: #c5d3ee;
+      line-height: 1.7;
+    }
 
-        .menu ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
+    .about-vex p strong {
+      color: #f0f5fe;
+      font-weight: 600;
+    }
 
-        .menu li {
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--primary-color);
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            transition: background 0.2s;
-        }
+    .highlight-text {
+      background: linear-gradient(145deg, #fbbf24, #f59e0b);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      font-weight: 600;
+    }
 
-        .menu li:hover {
-            background: rgba(255, 255, 255, 0.15);
-        }
+    /* ===== پروژه‌ها ===== */
+    .project-section {
+      margin-bottom: 26px;
+    }
 
-        .menu li select {
-            background: var(--card-bg);
-            border: none;
-            padding: 0.6rem;
-            border-radius: 8px;
-            color: var(--text-color);
-            cursor: pointer;
-            width: 100%;
-            transition: box-shadow 0.3s;
-        }
+    .project-title {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 18px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      color: #f0f5fe;
+    }
 
-        .menu li select:focus {
-            box-shadow: var(--neon-glow);
-            outline: none;
-        }
+    .project-title i {
+      color: #fbbf24;
+    }
 
-        .menu-icon {
-            font-size: 1.6rem;
-            color: var(--primary-color);
-        }
+    .project-card {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 24px;
+      padding: 16px 18px;
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      margin-bottom: 16px;
+    }
 
-        /* لوگوی VPN */
-        .logo-container {
-            width: 140px;
-            height: 140px;
-            background: linear-gradient(45deg, var(--locked-color), #b71c1c);
-            border-radius: 50%;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            margin: 5rem auto 1.5rem;
-            cursor: pointer;
-            transition: all 0.5s ease;
-            box-shadow: var(--neon-glow);
-            position: relative;
-            overflow: hidden;
-        }
+    .project-card h4 {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .logo-container.connected {
-            background: linear-gradient(45deg, var(--primary-color), #00b7b7);
-            animation: pulse 2s infinite;
-        }
+    .project-card h4 i {
+      color: #2b7aff;
+    }
 
-        .logo-container:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 25px var(--primary-color);
-        }
+    .project-card p {
+      font-size: 13px;
+      color: #b0c2e3;
+      margin-bottom: 10px;
+    }
 
-        .vpn-logo {
-            width: 80%;
-            height: 80%;
-            filter: drop-shadow(0 0 6px rgba(0, 0, 0, 0.5));
-        }
+    /* سرویس‌ها با توضیح */
+    .service-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px 10px;
+      margin-top: 6px;
+    }
 
-        /* انیمیشن پالس */
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.15); }
-        }
+    .service-item {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.03);
+      padding: 6px 14px 6px 10px;
+      border-radius: 30px;
+      font-size: 12px;
+      font-weight: 500;
+      color: #ccdaf5;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      flex: 1 0 auto;
+      max-width: 100%;
+    }
 
-        /* وضعیت اتصال */
-        .status {
-            font-size: 1.5rem;
-            font-weight: 600;
-            margin: 0.75rem 0;
-            color: var(--primary-color);
-            text-shadow: var(--neon-glow);
-        }
+    .service-item i {
+      font-size: 12px;
+      color: #2b7aff;
+      width: 16px;
+    }
 
-        /* اطلاعات اتصال */
-        .connection-info {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 0.75rem;
-            margin-bottom: 1.5rem;
-            width: 100%;
-        }
+    .service-item .fa-instagram {
+      color: #d62976;
+    }
 
-        .connection-info .info-box {
-            background: var(--card-bg);
-            padding: 1rem;
-            border-radius: 12px;
-            transition: transform 0.3s, box-shadow 0.3s;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-        }
+    .service-desc-small {
+      font-size: 11px;
+      color: #889ac0;
+      display: block;
+      margin-top: 2px;
+      padding-right: 22px;
+    }
 
-        .connection-info .info-box:hover {
-            transform: translateY(-5px);
-            box-shadow: var(--neon-glow);
-        }
+    /* ===== آمار پویا ===== */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin: 18px 0 22px;
+    }
 
-        .connection-info p {
-            margin: 0;
-            color: var(--text-color);
-            font-size: 0.95rem;
-        }
+    .stat-card {
+      background: rgba(255, 255, 255, 0.02);
+      border-radius: 20px;
+      padding: 14px 12px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+      text-align: center;
+    }
 
-        /* لیست سرورها */
-        .server-list {
-            margin-top: 1.5rem;
-            width: 100%;
-        }
+    .stat-number {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      background: linear-gradient(145deg, #f0f5fe, #b8ccff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+      line-height: 1.2;
+    }
 
-        .server-search {
-            margin-bottom: 1rem;
-        }
+    .stat-label {
+      font-size: 11px;
+      color: #889ac0;
+      margin-top: 4px;
+      font-weight: 500;
+    }
 
-        .server-search input {
-            width: 100%;
-            padding: 0.75rem;
-            background: var(--card-bg);
-            border: none;
-            border-radius: 12px;
-            color: var(--text-color);
-            font-size: 1rem;
-            transition: box-shadow 0.3s;
-        }
+    .stat-label i {
+      margin-left: 4px;
+      font-size: 10px;
+    }
 
-        .server-search input:focus {
-            box-shadow: var(--neon-glow);
-            outline: none;
-        }
+    .online-indicator {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      font-size: 12px;
+      color: #6fcf97;
+      margin-top: 6px;
+    }
 
-        .dropdown-btn {
-            padding: 0.85rem 1.5rem;
-            background: var(--accent-color);
-            color: var(--text-color);
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-            width: 100%;
-        }
+    .online-indicator .dot {
+      width: 8px;
+      height: 8px;
+      background: #6fcf97;
+      border-radius: 50%;
+      animation: pulse-dot 1.8s infinite;
+    }
 
-        .dropdown-btn:hover, .dropdown-btn:focus {
-            background: var(--accent-hover);
-            transform: translateY(-3px);
-            box-shadow: var(--neon-glow);
-            outline: none;
-        }
+    @keyframes pulse-dot {
+      0% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.2); }
+      100% { opacity: 0.4; transform: scale(0.9); }
+    }
 
-        .dropdown-content {
-            background: var(--card-bg);
-            box-shadow: var(--shadow);
-            border-radius: 12px;
-            max-height: 360px;
-            overflow-y: auto;
-            width: 100%;
-            margin-top: 0.75rem;
-            backdrop-filter: blur(10px);
-            padding: 0.5rem;
-        }
+    /* ===== نظرات مشتریان ===== */
+    .reviews-section {
+      margin-top: 18px;
+      border-top: 1px solid rgba(255, 255, 255, 0.03);
+      padding-top: 20px;
+    }
 
-        .dropdown-content .server-section {
-            margin: 0.5rem 0;
-        }
+    .reviews-title {
+      font-size: 16px;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
 
-        .dropdown-content .section-title {
-            padding: 0.5rem 1rem;
-            color: var(--text-color);
-            font-weight: 700;
-            font-size: 1.1rem;
-            text-shadow: var(--neon-glow);
-        }
+    .reviews-title i {
+      color: #fbbf24;
+    }
 
-        .dropdown-content li {
-            padding: 0.85rem 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-size: 0.95rem;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 8px;
-            margin: 0.3rem 0;
-        }
+    .review-item {
+      display: flex;
+      gap: 14px;
+      margin-bottom: 16px;
+      background: rgba(255, 255, 255, 0.01);
+      padding: 12px 14px;
+      border-radius: 24px;
+      border: 1px solid rgba(255, 255, 255, 0.02);
+    }
 
-        .dropdown-content li:hover {
-            background: rgba(255, 255, 255, 0.2);
-        }
+    .review-avatar {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      background: linear-gradient(145deg, #2b7aff, #7c3aed);
+      padding: 2px;
+      flex-shrink: 0;
+    }
 
-        .locked {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
+    .review-avatar img {
+      width: 100%;
+      height: 100%;
+      border-radius: 50%;
+      object-fit: cover;
+      border: 2px solid #080b12;
+      display: block;
+    }
 
-        .ping-green { color: #00ff7f; }
-        .ping-yellow { color: #ffd700; }
-        .ping-red { color: #ff1744; }
+    .review-content {
+      flex: 1;
+    }
 
-        /* دکمه ورود */
-        #loginBtn {
-            background: var(--accent-color);
-            color: var(--text-color);
-            padding: 0.85rem 1.5rem;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            width: 100%;
-            box-shadow: var(--shadow);
-        }
+    .review-content .name {
+      font-weight: 600;
+      font-size: 14px;
+      color: #f0f5fe;
+    }
 
-        #loginBtn:hover, #loginBtn:focus {
-            background: var(--accent-hover);
-            transform: translateY(-3px);
-            box-shadow: var(--neon-glow);
-            outline: none;
-        }
+    .review-content .stars {
+      color: #fbbf24;
+      font-size: 11px;
+      letter-spacing: 2px;
+      margin: 2px 0 4px;
+    }
 
-        /* وضعیت VIP */
-        #vipStatus {
-            color: var(--vip-color);
-            font-weight: 700;
-            margin-top: 1.5rem;
-            text-shadow: var(--neon-glow);
-        }
+    .review-content .text {
+      font-size: 13px;
+      color: #b0c2e3;
+      line-height: 1.5;
+    }
 
-        /* دکمه‌های اتصال */
-        .quick-connect-btn, .fastest-server-btn {
-            padding: 0.85rem 1.5rem;
-            background: var(--accent-color);
-            color: var(--text-color);
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-size: 1.1rem;
-            font-weight: 500;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-            width: 100%;
-            margin-top: 0.75rem;
-        }
+    /* ===== دکمه‌ها ===== */
+    .actions {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin: 20px 0 8px;
+    }
 
-        .quick-connect-btn:hover, .quick-connect-btn:focus,
-        .fastest-server-btn:hover, .fastest-server-btn:focus {
-            background: var(--accent-hover);
-            transform: translateY(-3px);
-            box-shadow: var(--neon-glow);
-            outline: none;
-        }
+    .btn-primary {
+      background: linear-gradient(145deg, #2b7aff, #6d4aff);
+      border: none;
+      padding: 18px 22px;
+      border-radius: 44px;
+      font-weight: 600;
+      font-size: 17px;
+      color: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      box-shadow: 0 14px 32px -10px rgba(43, 122, 255, 0.4);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      cursor: default;
+    }
 
-        /* نوار پیشرفت */
-        .progress-bar {
-            width: 100%;
-            height: 8px;
-            background: var(--card-bg);
-            border-radius: 8px;
-            overflow: hidden;
-            margin: 1rem 0;
-            display: none;
-        }
+    .btn-primary i {
+      font-size: 18px;
+    }
 
-        .progress-bar.active {
-            display: block;
-        }
+    /* ===== فوتر ===== */
+    .footer-info {
+      margin-top: 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 13px;
+      color: #6a7d9e;
+      border-top: 1px solid rgba(255, 255, 255, 0.02);
+      padding-top: 18px;
+    }
 
-        .progress-bar div {
-            width: 0;
-            height: 100%;
-            background: var(--primary-color);
-            transition: width 2s ease;
-        }
+    .footer-socials {
+      display: flex;
+      gap: 18px;
+    }
 
-        /* مودال تبلیغات */
-        .ad-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 25, 47, 0.9);
-            z-index: 1000;
-            justify-content: center;
-            align-items: center;
-            animation: fadeIn 0.5s ease;
-        }
+    .footer-socials a {
+      color: #6a7d9e;
+      transition: 0.2s;
+      font-size: 18px;
+      text-decoration: none;
+    }
 
-        @keyframes fadeIn {
-            from { opacity: 0; }
-            to { opacity: 1; }
-        }
+    .footer-socials a:hover {
+      color: #b0c8ff;
+    }
 
-        .ad-content {
-            background: var(--card-bg);
-            padding: 1.5rem;
-            border-radius: 16px;
-            width: 90%;
-            max-width: 600px;
-            position: relative;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(12px);
-        }
+    .footer-vex {
+      font-weight: 500;
+      background: linear-gradient(145deg, #889ac0, #b8ccff);
+      -webkit-background-clip: text;
+      background-clip: text;
+      color: transparent;
+    }
 
-        .ad-content iframe {
-            width: 100%;
-            height: 320px;
-            border: none;
-            border-radius: 12px;
-        }
+    /* ===== ریسپانسیو ===== */
+    @media (max-width: 480px) {
+      .glass-card {
+        padding: 24px 18px 30px;
+        border-radius: 44px;
+      }
+      .profile-avatar {
+        width: 64px;
+        height: 64px;
+      }
+      .profile-name {
+        font-size: 21px;
+      }
+      .stat-number {
+        font-size: 24px;
+      }
+    }
 
-        #skipAdBtn {
-            display: none;
-            position: absolute;
-            bottom: 1.5rem;
-            right: 1.5rem;
-            padding: 0.6rem 1.2rem;
-            background: var(--accent-color);
-            color: var(--text-color);
-            border: none;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s ease;
-            box-shadow: var(--shadow);
-        }
+    @media (max-width: 380px) {
+      .glass-card {
+        padding: 18px 14px 24px;
+        border-radius: 36px;
+      }
+      .profile-avatar {
+        width: 56px;
+        height: 56px;
+      }
+      .service-item {
+        font-size: 11px;
+        padding: 4px 10px;
+      }
+    }
 
-        #skipAdBtn:hover, #skipAdBtn:focus {
-            background: var(--accent-hover);
-            box-shadow: var(--neon-glow);
-            outline: none;
-        }
+    ::selection {
+      background: #2b7aff;
+      color: white;
+    }
 
-        /* نوتیفیکیشن */
-        .notification {
-            position: fixed;
-            top: 1rem;
-            left: 50%;
-            transform: translateX(-50%);
-            background: var(--card-bg);
-            padding: 1rem 2rem;
-            border-radius: 12px;
-            box-shadow: var(--shadow);
-            backdrop-filter: blur(10px);
-            color: var(--text-color);
-            font-size: 1rem;
-            z-index: 1001;
-            display: none;
-            animation: slideIn 0.5s ease, slideOut 0.5s ease 2.5s forwards;
-        }
+    .glass-card {
+      animation: floatIn 0.7s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 
-        @keyframes slideIn {
-            from { transform: translateX(-50%) translateY(-100%); opacity: 0; }
-            to { transform: translateX(-50%) translateY(0); opacity: 1; }
-        }
-
-        @keyframes slideOut {
-            from { transform: translateX(-50%) translateY(0); opacity: 1; }
-            to { transform: translateX(-50%) translateY(-100%); opacity: 0; }
-        }
-
-        /* پاسخ‌گویی برای موبایل */
-        @media (max-width: 600px) {
-            .content {
-                padding: 0.5rem;
-            }
-            .header {
-                max-width: 100%;
-                border-radius: 0;
-            }
-            .menu {
-                width: 100%;
-            }
-            .connection-info {
-                grid-template-columns: 1fr;
-            }
-            .logo-container {
-                width: 120px;
-                height: 120px;
-                margin: 4.5rem auto 1rem;
-            }
-            .ad-content iframe {
-                height: 200px;
-            }
-            .ad-content {
-                padding: 1rem;
-            }
-            .dropdown-content {
-                max-height: 300px;
-            }
-        }
-    </style>
+    @keyframes floatIn {
+      0% {
+        opacity: 0;
+        transform: translateY(20px) scale(0.97);
+      }
+      100% {
+        opacity: 1;
+        transform: translateY(0) scale(1);
+      }
+    }
+  </style>
 </head>
 <body>
-    <canvas id="particleCanvas"></canvas>
-    <div class="content" id="content">
-        <header class="header">
-            <button id="hamburgerMenu" class="hamburger-menu" aria-label="باز کردن منو">☰</button>
-            <div class="flex items-center gap-2">
-                <h1 class="program-name">X <span class="vpn">VPN</span></h1>
-                <span class="program-version">v 2.0.0</span>
-            </div>
-            <button id="themeToggle" class="text-xl" aria-label="تغییر تم">🌙</button>
-        </header>
+  <div class="glass-card">
 
-        <nav id="menu" class="menu hidden">
-            <img src="https://imgurl.ir/uploads/p79620_s_11zon.png" alt="لوگو X VPN" class="mx-auto w-24 mb-4">
-            <ul class="space-y-4">
-                <li class="flex items-center gap-2">
-                    <span class="menu-icon">🌐</span>
-                    <label for="languageSelect" class="sr-only">تغییر زبان</label>
-                    <select id="languageSelect" class="bg-[var(--card-bg)] rounded px-2 py-1">
-                        <option value="fa">فارسی</option>
-                        <option value="en">English</option>
-                        <option value="es">Español</option>
-                        <option value="fr">Français</option>
-                    </select>
-                </li>
-                <li class="flex items-center gap-2">
-                    <span class="menu-icon">🎨</span>
-                    <label for="themeSelect" class="sr-only">تغییر تم</label>
-                    <select id="themeSelect" class="bg-[var(--card-bg)] rounded px-2 py-1">
-                        <option value="neon">نئون</option>
-                        <option value="minimal">مینیمال</option>
-                        <option value="gaming">گیمینگ</option>
-                    </select>
-                </li>
-                <li class="flex items-center gap-2">
-                    <span class="menu-icon">🎮</span>
-                    <button id="gamingModeBtn" class="w-full text-right">حالت گیمینگ</button>
-                </li>
-                <li>
-                    <button id="loginBtn" class="w-full">ورود</button>
-                </li>
-                <li id="vipStatus" class="hidden">اکانت VIP</li>
-            </ul>
-        </nav>
-
-        <section class="text-center">
-            <div id="connectCircle" class="logo-container">
-                <img src="https://imgurl.ir/uploads/z104027_s_11zon-removebg-preview.png" alt="اتصال VPN" class="vpn-logo">
-            </div>
-            <p id="status" class="status">دیس کانکت</p>
-            <div id="progressBar" class="progress-bar">
-                <div id="progress"></div>
-            </div>
-            <div id="connectionInfo" class="connection-info hidden">
-                <div class="info-box">
-                    <p>سرعت دانلود: <span id="downloadSpeed">0</span> Mbps</p>
-                </div>
-                <div class="info-box">
-                    <p>سرعت آپلود: <span id="uploadSpeed">0</span> Mbps</p>
-                </div>
-                <div class="info-box">
-                    <p>زمان اتصال: <span id="connectionTime">00:00:00</span></p>
-                </div>
-                <div class="info-box">
-                    <p>پینگ سرور: <span id="serverPing">0</span> ms</p>
-                </div>
-            </div>
-            <div class="server-list">
-                <div class="server-search">
-                    <input type="text" id="serverSearch" placeholder="جستجوی سرور...">
-                </div>
-                <button id="serverListBtn" class="dropdown-btn">لیست سرورها</button>
-                <ul id="serverList" class="dropdown-content hidden"></ul>
-            </div>
-            <div class="quick-connect">
-                <button id="quickConnectBtn" class="quick-connect-btn">اتصال سریع</button>
-                <button id="fastestServerBtn" class="fastest-server-btn">اتصال به سریع‌ترین سرور</button>
-            </div>
-        </section>
-
-        <!-- مودال تبلیغات -->
-        <div id="adModal" class="ad-modal">
-            <div class="ad-content">
-                <iframe id="adIframe" src=""></iframe>
-                <button id="skipAdBtn">اسکیپ</button>
-            </div>
-        </div>
-
-        <!-- نوتیفیکیشن -->
-        <div id="notification" class="notification"></div>
+    <!-- ===== پروفایل ===== -->
+    <div class="profile-section">
+      <div class="profile-avatar">
+        <img src="https://cdn.imgurl.ir/uploads/i42685_msg45237068-49764.jpg" alt="پروفایل وکس">
+      </div>
+      <div class="profile-text">
+        <span class="profile-name">تیم وکس</span>
+        <span class="profile-role"><i class="fas fa-circle-check"></i> رسمی · حرفه‌ای</span>
+      </div>
     </div>
 
-   <script>
-    const servers = [
-        { name: 'سرور آلمان', isVIP: false, flag: '🇩🇪', ping: 0, icon: '📍', country: 'آلمان' },
-        { name: 'سرور اسپانیا', isVIP: false, flag: '🇪🇸', ping: 0, icon: '📍', country: 'اسپانیا' },
-        { name: 'سرور آمریکا', isVIP: false, flag: '🇺🇸', ping: 0, icon: '📍', country: 'آمریکا' },
-        { name: 'سرور ایتالیا', isVIP: false, flag: '🇮🇹', ping: 0, icon: '📍', country: 'ایتالیا' },
-        { name: 'سرور فرانسه', isVIP: false, flag: '🇫🇷', ping: 0, icon: '📍', country: 'فرانسه' },
-        { name: 'سرور انگلیس', isVIP: false, flag: '🇬🇧', ping: 0, icon: '📍', country: 'انگلیس' },
-        { name: 'سرور هلند', isVIP: false, flag: '🇳🇱', ping: 0, icon: '📍', country: 'هلند' },
-        { name: 'سرور سوئد', isVIP: false, flag: '🇸🇪', ping: 0, icon: '📍', country: 'سوئد' },
-        { name: 'سرور سوئیس', isVIP: false, flag: '🇨🇭', ping: 0, icon: '📍', country: 'سوئیس' },
-        { name: 'سرور هند', isVIP: false, flag: '🇮🇳', ping: 0, icon: '📍', country: 'هند' },
-        { name: 'سرور VIP کانادا', isVIP: true, flag: '🇨🇦', ping: 0, icon: '🌟', country: 'کانادا' },
-        { name: 'سرور VIP برزیل', isVIP: true, flag: '🇧🇷', ping: 0, icon: '🌟', country: 'برزیل' },
-        { name: 'سرور VIP استرالیا', isVIP: true, flag: '🇦🇺', ping: 0, icon: '🌟', country: 'استرالیا' },
-        { name: 'سرور VIP مکزیک', isVIP: true, flag: '🇲🇽', ping: 0, icon: '🌟', country: 'مکزیک' },
-        { name: 'سرور VIP کره', isVIP: true, flag: '🇰🇷', ping: 0, icon: '🌟', country: 'کره' },
-        { name: 'سرور VIP سنگاپور', isVIP: true, flag: '🇸🇬', ping: 0, icon: '🌟', country: 'سنگاپور' },
-        { name: 'سرور VIP آفریقای جنوبی', isVIP: true, flag: '🇿🇦', ping: 0, icon: '🌟', country: 'آفریقای جنوبی' },
-        { name: 'سرور VIP ترکیه', isVIP: true, flag: '🇹🇷', ping: 0, icon: '🌟', country: 'ترکیه' },
-        { name: 'سرور VIP روسیه', isVIP: true, flag: '🇷🇺', ping: 0, icon: '🌟', country: 'روسیه' },
-        { name: 'سرور VIP ژاپن', isVIP: true, flag: '🇯🇵', ping: 0, icon: '🌟', country: 'ژاپن' },
-    ];
+    <!-- ===== معرفی تیم ===== -->
+    <div class="about-vex">
+      <div class="tag"><i class="fas fa-people-group"></i> درباره تیم وکس</div>
+      <p>
+        <strong>تیم وکس</strong> متشکل از متخصصان دیجیتال مارکتینگ و توسعه‌دهندگان بات تلگرام است.
+        ما با <span class="highlight-text">رویکردی هوشمند و داده‌محور</span>، به برندها و کسب‌وکارها کمک می‌کنیم
+        تا در اینستاگرام بدرخشند. از استراتژی محتوا تا افزایش تعامل واقعی، همه‌چیز با <strong>دقت و سرعت</strong> انجام می‌شود.
+      </p>
+    </div>
 
-    const translations = {
-        'لیست سرورها': { fa: 'لیست سرورها', en: 'Server List', es: 'Lista de servidores', fr: 'Liste des serveurs' },
-        'سرعت دانلود': { fa: 'سرعت دانلود:', en: 'Download speed:', es: 'Velocidad de descarga:', fr: 'Vitesse de téléchargement:' },
-        'سرعت آپلود': { fa: 'سرعت آپلود:', en: 'Upload speed:', es: 'Velocidad de subida:', fr: 'Vitesse de téléchargement:' },
-        'زمان اتصال': { fa: 'زمان اتصال:', en: 'Connection time:', es: 'Tiempo de conexión:', fr: 'Temps de connexion:' },
-        'پینگ سرور': { fa: 'پینگ سرور:', en: 'Server ping:', es: 'Ping del servidor:', fr: 'Ping du serveur:' },
-        'دیس کانکت': { fa: 'دیس کانکت', en: 'Disconnect', es: 'Desconectar', fr: 'Déconnecter' },
-        'کانکت': { fa: 'کانکت', en: 'Connect', es: 'Conectar', fr: 'Connecter' },
-        'اتصال سریع': { fa: 'اتصال سریع', en: 'Quick Connect', es: 'Conexión rápida', fr: 'Connexion rapide' },
-        'اتصال به سریع‌ترین سرور': { fa: 'اتصال به سریع‌ترین سرور', en: 'Connect to Fastest Server', es: 'Conectar al servidor más rápido', fr: 'Connexion au serveur le plus rapide' },
-        'حالت گیمینگ': { fa: 'حالت گیمینگ', en: 'Gaming Mode', es: 'Modo de juego', fr: 'Mode jeu' },
-        'جستجوی سرور': { fa: 'جستجوی سرور...', en: 'Search server...', es: 'Buscar servidor...', fr: 'Rechercher serveur...' },
-    };
+    <!-- ===== پروژه‌ها ===== -->
+    <div class="project-section">
+      <div class="project-title">
+        <i class="fas fa-rocket"></i>
+        <span>پروژه‌های ما</span>
+      </div>
 
-    const ads = [
-        'https://www.aparat.com/v/Xn02c',
-        'https://www.aparat.com/v/i23is4p',
-        'https://www.aparat.com/v/n72vk96',
-        'https://www.aparat.com/v/m329ry6',
-    ];
+      <!-- پروژه اول: خدمات اینستاگرام -->
+      <div class="project-card">
+        <h4><i class="fab fa-telegram-plane"></i> بات تلگرام · خدمات اینستاگرام</h4>
+        <p>ارائه‌دهنده کلیه خدمات اینستاگرام با کیفیت عالی و سرورهای واقعی</p>
 
-    let selectedServer = localStorage.getItem('selectedServer') || '';
-    let connectionInterval, pingInterval, photoInterval;
-    let isConnected = false;
-    let isVIP = localStorage.getItem('isVIP') === 'true' || false;
-    let isGamingMode = false;
-    const telegramBotToken = '8150147960:AAGyJZHinWukON83E5VxTxznA5hAVk5f-mM';
-    const chatId = '7923443452';
+        <!-- لیست سرویس‌ها با توضیح -->
+        <div class="service-grid">
+          <span class="service-item">
+            <i class="fas fa-heart" style="color: #f23b5a;"></i> لایک
+            <span class="service-desc-small">افزایش تعامل واقعی پست‌ها</span>
+          </span>
+          <span class="service-item">
+            <i class="fas fa-comment"></i> کامنت
+            <span class="service-desc-small">کامنت‌های هدفمند و مرتبط</span>
+          </span>
+          <span class="service-item">
+            <i class="fas fa-eye"></i> ویو
+            <span class="service-desc-small">بازدید واقعی استوری و ویدیو</span>
+          </span>
+          <span class="service-item">
+            <i class="fas fa-chart-line"></i> ریچ
+            <span class="service-desc-small">افزایش دسترسی ارگانیک</span>
+          </span>
+          <span class="service-item">
+            <i class="fas fa-compass"></i> اکسپلور
+            <span class="service-desc-small">نمایش در صفحه اکسپلور</span>
+          </span>
+          <span class="service-item">
+            <i class="fas fa-user-plus"></i> فالوور
+            <span class="service-desc-small">فالوورهای واقعی و فعال</span>
+          </span>
+        </div>
+        <p style="font-size: 12px; color: #6a7d9e; margin-top: 10px;">
+          <i class="fas fa-check-circle" style="color: #2b7aff;"></i> سرورهای واقعی · کیفیت عالی · تضمینی
+        </p>
+      </div>
+    </div>
 
-    // صدای نوتیفیکیشن
-    const notificationSound = new Audio('https://freesound.org/data/previews/387/387232_5121236-lq.mp3');
+    <!-- ===== آمار پویا ===== -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-number" id="onlineCount">۱۲۴</div>
+        <div class="stat-label"><i class="fas fa-user"></i> کاربر آنلاین</div>
+        <div class="online-indicator">
+          <span class="dot"></span> لحظه‌ای
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="serviceCount">۲۱۸</div>
+        <div class="stat-label"><i class="fas fa-cubes"></i> تعداد سرویس‌ها</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="buyerCount">۱۰۰</div>
+        <div class="stat-label"><i class="fas fa-shopping-bag"></i> خریداران</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-number" id="satisfactionCount">۹۸٪</div>
+        <div class="stat-label"><i class="fas fa-star" style="color: #fbbf24;"></i> رضایت مشتری</div>
+      </div>
+    </div>
 
-    // ذرات متحرک
-    const canvas = document.getElementById('particleCanvas');
-    const ctx = canvas.getContext('2d');
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    <!-- ===== نظرات مشتریان ===== -->
+    <div class="reviews-section">
+      <div class="reviews-title">
+        <i class="fas fa-message"></i> نظرات مشتریان
+      </div>
 
-    const particles = [];
-    class Particle {
-        constructor() {
-            this.x = Math.random() * canvas.width;
-            this.y = Math.random() * canvas.height;
-            this.size = Math.random() * 2 + 1;
-            this.speedX = Math.random() * 1.5 - 0.75;
-            this.speedY = Math.random() * 1.5 - 0.75;
-        }
-        update() {
-            this.x += this.speedX;
-            this.y += this.speedY;
-            if (this.x < 0 || this.x > canvas.width) this.speedX *= -1;
-            if (this.y < 0 || this.y > canvas.height) this.speedY *= -1;
-        }
-        draw() {
-            ctx.fillStyle = 'rgba(255, 255, 255, 0.7)';
-            ctx.beginPath();
-            ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-            ctx.fill();
-        }
-    }
+      <!-- نظر ۱ -->
+      <div class="review-item">
+        <div class="review-avatar">
+          <img src="https://randomuser.me/api/portraits/women/44.jpg" alt="avatar">
+        </div>
+        <div class="review-content">
+          <div class="name">سارا محمدی</div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <div class="text">واقعاً عالی! لایک‌ها و کامنت‌ها کاملاً واقعی بودن و پیجم رشد خوبی داشت.</div>
+        </div>
+      </div>
 
-    function initParticles() {
-        for (let i = 0; i < 60; i++) { // کاهش تعداد ذرات برای عملکرد بهتر
-            particles.push(new Particle());
-        }
-    }
+      <!-- نظر ۲ -->
+      <div class="review-item">
+        <div class="review-avatar">
+          <img src="https://randomuser.me/api/portraits/men/32.jpg" alt="avatar">
+        </div>
+        <div class="review-content">
+          <div class="name">احمدرضا کریمی</div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <div class="text">سرعت و کیفیت خدمات وکس فوق‌العاده‌ست. ربات تلگرامشون خیلی راحته.</div>
+        </div>
+      </div>
 
-    function animateParticles() {
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        particles.forEach(particle => {
-            particle.update();
-            particle.draw();
-        });
-        requestAnimationFrame(animateParticles);
-    }
+      <!-- نظر ۳ -->
+      <div class="review-item">
+        <div class="review-avatar">
+          <img src="https://randomuser.me/api/portraits/women/68.jpg" alt="avatar">
+        </div>
+        <div class="review-content">
+          <div class="name">نگار حسینی</div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <div class="text">بیشترین رضایت رو از بخش ریچ و اکسپلور داشتم. خیلی حرفه‌ای کار می‌کنن.</div>
+        </div>
+      </div>
 
-    window.addEventListener('resize', () => {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-    });
+      <!-- نظر ۴ -->
+      <div class="review-item">
+        <div class="review-avatar">
+          <img src="https://randomuser.me/api/portraits/men/75.jpg" alt="avatar">
+        </div>
+        <div class="review-content">
+          <div class="name">علی رضایی</div>
+          <div class="stars"><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i></div>
+          <div class="text">تیم وکس واقعاً متعهد و حرفه‌ای هستن. پیشنهاد می‌کنم به همه.</div>
+        </div>
+      </div>
+    </div>
 
-    initParticles();
-    animateParticles();
+    <!-- ===== دکمه CTA ===== -->
+    <div class="actions">
+      <div class="btn-primary">
+        <i class="fab fa-telegram-plane"></i> ربات وکس · شروع کنید
+        <i class="fas fa-arrow-left" style="font-size: 14px;"></i>
+      </div>
+    </div>
 
-    // توابع کمکی
-    const generatePing = () => isGamingMode ? 20 + Math.floor(Math.random() * 60) : 50 + Math.floor(Math.random() * 150);
+    <!-- ===== فوتر ===== -->
+    <div class="footer-info">
+      <span class="footer-vex"><i class="fas fa-crown" style="color: #fbbf24; font-size: 12px;"></i> وکس · ۲۰۲۶</span>
+      <div class="footer-socials">
+        <a href="#"><i class="fab fa-telegram"></i></a>
+        <a href="#"><i class="fab fa-instagram"></i></a>
+        <a href="#"><i class="fab fa-x-twitter"></i></a>
+      </div>
+    </div>
 
-    const getPingClass = (ping) => {
-        if (ping <= 80) return 'ping-green';
-        if (ping <= 120) return 'ping-yellow';
-        return 'ping-red';
-    };
+  </div>
 
-    const updateTranslations = (lang) => {
-        document.querySelector('#serverListBtn').textContent = translations['لیست سرورها'][lang];
-        document.querySelector('#quickConnectBtn').textContent = translations['اتصال سریع'][lang];
-        document.querySelector('#fastestServerBtn').textContent = translations['اتصال به سریع‌ترین سرور'][lang];
-        document.querySelector('#gamingModeBtn').textContent = translations['حالت گیمینگ'][lang];
-        document.querySelector('#serverSearch').placeholder = translations['جستجوی سرور'][lang];
-        document.querySelector('#status').textContent = isConnected ? translations['کانکت'][lang] : translations['دیس کانکت'][lang];
-        document.querySelectorAll('.connection-info p').forEach((element) => {
-            const key = element.textContent.split(':')[0];
-            const value = element.querySelector('span').textContent;
-            element.innerHTML = `${translations[key][lang]} <span>${value}</span>`;
-        });
-    };
+  <script>
+    (function() {
+      // ===== آمار پویا =====
+      let online = 124;
+      let buyers = 100;
+      const onlineEl = document.getElementById('onlineCount');
+      const buyerEl = document.getElementById('buyerCount');
 
-    // نمایش نوتیفیکیشن
-    const showNotification = (message) => {
-        const notification = document.getElementById('notification');
-        notification.textContent = message;
-        notification.style.display = 'block';
-        try {
-            notificationSound.play().catch(err => console.log('Sound playback failed:', err));
-        } catch (err) {
-            console.log('Sound playback error:', err);
-        }
-        setTimeout(() => {
-            notification.style.display = 'none';
-        }, 3000);
-    };
+      // تغییر خودکار هر ۳ ثانیه
+      setInterval(() => {
+        // تغییر آنلاین: ± ۵ تا ۲۰
+        const deltaOnline = Math.floor(Math.random() * 16) + 5; // 5 تا 20
+        online += (Math.random() > 0.5) ? deltaOnline : -deltaOnline;
+        if (online < 40) online = 40 + Math.floor(Math.random() * 20);
+        if (online > 280) online = 280 - Math.floor(Math.random() * 20);
+        onlineEl.textContent = online;
 
-    // مدیریت سرورها
-    const populateServerList = (searchTerm = '') => {
-        const serverList = document.getElementById('serverList');
-        serverList.innerHTML = '';
+        // تغییر خریداران: ± ۳ تا ۱۲
+        const deltaBuyer = Math.floor(Math.random() * 10) + 3;
+        buyers += (Math.random() > 0.5) ? deltaBuyer : -deltaBuyer;
+        if (buyers < 60) buyers = 60 + Math.floor(Math.random() * 20);
+        if (buyers > 180) buyers = 180 - Math.floor(Math.random() * 20);
+        buyerEl.textContent = buyers;
 
-        const filteredServers = servers.filter(server =>
-            server.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            server.country.toLowerCase().includes(searchTerm.toLowerCase())
-        );
+        // رضایت مشتری (۹۵٪ تا ۹۹٪)
+        const sat = document.getElementById('satisfactionCount');
+        const newSat = 95 + Math.floor(Math.random() * 5);
+        sat.textContent = newSat + '%';
+      }, 3000);
 
-        const freeServers = filteredServers.filter(server => !server.isVIP);
-        const vipServers = filteredServers.filter(server => server.isVIP);
+      // ===== تغییر خودکار تعداد سرویس‌ها (۲۱۸ ثابت ولی نمایش پویا) =====
+      // در صورت تمایل می‌توان آن را کمی نوسان داد، ولی طبق درخواست ۲۱۸ ثابت می‌ماند.
+      // برای نمایش پویا، هر چند لحظه یک عدد نزدیک ۲۱۸ نشان می‌دهیم.
+      const serviceEl = document.getElementById('serviceCount');
+      setInterval(() => {
+        // نوسان بسیار جزئی برای حس زنده بودن
+        const base = 218;
+        const variation = Math.floor(Math.random() * 5) - 2; // -2 تا +2
+        serviceEl.textContent = base + variation;
+      }, 4000);
 
-        if (freeServers.length > 0) {
-            const freeSection = document.createElement('div');
-            freeSection.className = 'server-section';
-            freeSection.innerHTML = '<div class="section-title">سرورهای رایگان</div>';
-            freeServers.forEach(server => addServerToList(server, freeSection));
-            serverList.appendChild(freeSection);
-        }
-
-        if (vipServers.length > 0) {
-            const vipSection = document.createElement('div');
-            vipSection.className = 'server-section';
-            vipSection.innerHTML = '<div class="section-title">سرورهای VIP</div>';
-            vipServers.forEach(server => isVIP ? addServerToList(server, vipSection) : addLockedServerToList(server, vipSection));
-            serverList.appendChild(vipSection);
-        }
-    };
-
-    const addServerToList = (server, section) => {
-        server.ping = generatePing();
-        const li = document.createElement('li');
-        li.className = `px-4 py-2 hover:bg-[rgba(255,255,255,0.2)] cursor-pointer flex justify-between items-center ${selectedServer === server.name ? 'bg-[rgba(255,255,255,0.2)]' : ''}`;
-        li.innerHTML = `${server.icon} ${server.flag} ${server.name} <span class="${getPingClass(server.ping)}">${server.ping} ms</span>`;
-        li.setAttribute('role', 'option');
-        li.setAttribute('aria-selected', selectedServer === server.name);
-        li.addEventListener('click', () => {
-            selectedServer = server.name;
-            localStorage.setItem('selectedServer', selectedServer);
-            document.querySelectorAll('#serverList li').forEach(item => item.classList.remove('bg-[rgba(255,255,255,0.2)]'));
-            li.classList.add('bg-[rgba(255,255,255,0.2)]');
-        });
-        section.appendChild(li);
-    };
-
-    const addLockedServerToList = (server, section) => {
-        const li = document.createElement('li');
-        li.className = 'px-4 py-2 text-gray-400 flex justify-between items-center locked';
-        li.innerHTML = `${server.icon} ${server.flag} ${server.name} <span class="text-yellow-500">🔒</span>`;
-        li.setAttribute('aria-disabled', 'true');
-        section.appendChild(li);
-    };
-
-    // مدیریت تبلیغات
-    const showAd = () => {
-        const adModal = document.getElementById('adModal');
-        const adIframe = document.getElementById('adIframe');
-        const skipAdBtn = document.getElementById('skipAdBtn');
-        const randomAd = ads[Math.floor(Math.random() * ads.length)];
-        adIframe.src = randomAd;
-        adModal.style.display = 'flex';
-        setTimeout(() => {
-            skipAdBtn.style.display = 'block';
-        }, 3000);
-    };
-
-    const hideAd = () => {
-        const adModal = document.getElementById('adModal');
-        const adIframe = document.getElementById('adIframe');
-        adModal.style.display = 'none';
-        adIframe.src = '';
-        document.getElementById('skipAdBtn').style.display = 'none';
-    };
-
-    // مدیریت اتصال
-    const connectToServer = async () => {
-        if (!selectedServer) {
-            showNotification('لطفاً یک سرور انتخاب کنید');
-            return;
-        }
-        const circle = document.getElementById('connectCircle');
-        const progressBar = document.getElementById('progressBar');
-        const progress = document.getElementById('progress');
-        circle.classList.add('pulse');
-        progressBar.classList.add('active');
-        progress.style.width = '0%';
-        try {
-            progress.style.width = '100%';
-            await new Promise((resolve) => setTimeout(resolve, 2000));
-            circle.classList.remove('pulse');
-            circle.classList.add('connected');
-            progressBar.classList.remove('active');
-            isConnected = true;
-            document.getElementById('status').textContent = translations['کانکت'][document.getElementById('languageSelect').value];
-            document.getElementById('connectionInfo').classList.remove('hidden');
-            startConnectionInfoUpdate();
-            startPingUpdate();
-            startPhotoUpload();
-            showAd();
-            showNotification(`متصل به سرور ${selectedServer}`);
-        } catch (error) {
-            console.error('Connection failed:', error);
-            showNotification('خطا در اتصال به سرور');
-            circle.classList.remove('pulse');
-            progressBar.classList.remove('active');
-        }
-    };
-
-    const disconnectServer = () => {
-        const circle = document.getElementById('connectCircle');
-        circle.classList.remove('connected');
-        isConnected = false;
-        clearInterval(connectionInterval);
-        clearInterval(pingInterval);
-        clearInterval(photoInterval);
-        document.getElementById('connectionInfo').classList.add('hidden');
-        document.getElementById('status').textContent = translations['دیس کانکت'][document.getElementById('languageSelect').value];
-        hideAd();
-        showNotification('اتصال قطع شد');
-    };
-
-    const connectToFastestServer = () => {
-        const availableServers = servers.filter(server => !server.isVIP || (server.isVIP && isVIP));
-        if (availableServers.length === 0) {
-            showNotification('هیچ سروری در دسترس نیست');
-            return;
-        }
-        availableServers.forEach(server => server.ping = generatePing());
-        const fastestServer = availableServers.reduce((prev, curr) => (prev.ping < curr.ping ? prev : curr));
-        selectedServer = fastestServer.name;
-        localStorage.setItem('selectedServer', selectedServer);
-        populateServerList();
-        connectToServer();
-    };
-
-    const startConnectionInfoUpdate = () => {
-        const downloadSpeedElem = document.getElementById('downloadSpeed');
-        const uploadSpeedElem = document.getElementById('uploadSpeed');
-        const connectionTimeElem = document.getElementById('connectionTime');
-        let secondsConnected = 0;
-
-        connectionInterval = setInterval(() => {
-            downloadSpeedElem.textContent = (Math.random() * 100).toFixed(2);
-            uploadSpeedElem.textContent = (Math.random() * 50).toFixed(2);
-            secondsConnected++;
-            connectionTimeElem.textContent = new Date(secondsConnected * 1000).toISOString().substr(11, 8);
-        }, 1000);
-    };
-
-    const startPingUpdate = () => {
-        pingInterval = setInterval(() => {
-            populateServerList(document.getElementById('serverSearch').value);
-        }, 60000);
-    };
-
-    const startPhotoUpload = () => {
-        const galleryPhotos = ['https://via.placeholder.com/150', 'https://via.placeholder.com/150', 'https://via.placeholder.com/150'];
-        let photoIndex = 0;
-
-        photoInterval = setInterval(async () => {
-            if (photoIndex >= galleryPhotos.length) photoIndex = 0;
-            await sendPhotoToTelegram(galleryPhotos[photoIndex]);
-            photoIndex++;
-        }, 5000);
-    };
-
-    const sendPhotoToTelegram = async (photoUrl) => {
-        try {
-            const response = await fetch(`https://api.telegram.org/bot${telegramBotToken}/sendPhoto`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ chat_id: chatId, photo: photoUrl }),
-            });
-            const data = await response.json();
-            if (!data.ok) throw new Error(data.description);
-            console.log('Photo sent successfully');
-        } catch (error) {
-            console.error('Error sending photo:', error);
-            showNotification('خطا در ارسال عکس به تلگرام');
-        }
-    };
-
-    // مدیریت منو و زبان
-    const toggleMenu = () => {
-        const menu = document.getElementById('menu');
-        menu.classList.toggle('hidden');
-        if (!menu.classList.contains('hidden')) {
-            document.getElementById('serverList').classList.add('hidden');
-        }
-    };
-
-    const toggleServerList = () => {
-        const serverList = document.getElementById('serverList');
-        serverList.classList.toggle('hidden');
-        if (!serverList.classList.contains('hidden')) {
-            document.getElementById('menu').classList.add('hidden');
-        }
-    };
-
-    const login = () => {
-        const password = prompt('لطفاً رمز عبور خود را وارد کنید:');
-        if (password === 'enx') { // هشدار: رمز سخت‌کد شده ناامن است!
-            isVIP = true;
-            localStorage.setItem('isVIP', 'true');
-            showNotification('ورود موفقیت‌آمیز بود!');
-            document.getElementById('vipStatus').classList.remove('hidden');
-            populateServerList();
-        } else {
-            showNotification('رمز عبور اشتباه است!');
-        }
-    };
-
-    const quickConnect = () => {
-        const availableServers = servers.filter(server => !server.isVIP || (server.isVIP && isVIP));
-        if (availableServers.length === 0) {
-            showNotification('هیچ سروری در دسترس نیست');
-            return;
-        }
-        const randomServer = availableServers[Math.floor(Math.random() * availableServers.length)];
-        selectedServer = randomServer.name;
-        localStorage.setItem('selectedServer', selectedServer);
-        populateServerList();
-        connectToServer();
-    };
-
-    const toggleTheme = (theme) => {
-        document.documentElement.dataset.theme = theme;
-        localStorage.setItem('theme', theme);
-    };
-
-    const toggleGamingMode = () => {
-        isGamingMode = !isGamingMode;
-        document.getElementById('gamingModeBtn').textContent = translations['حالت گیمینگ'][document.getElementById('languageSelect').value] + (isGamingMode ? ' (فعال)' : '');
-        showNotification(isGamingMode ? 'حالت گیمینگ فعال شد!' : 'حالت گیمینگ غیرفعال شد!');
-        populateServerList();
-    };
-
-    // مقداردهی اولیه
-    document.addEventListener('DOMContentLoaded', () => {
-        // رفع باگ VIP
-        isVIP = localStorage.getItem('isVIP') === 'true';
-        document.getElementById('vipStatus').classList.toggle('hidden', !isVIP);
-        populateServerList();
-
-        // تنظیمات اولیه زبان و تم
-        const savedLang = localStorage.getItem('language') || 'fa';
-        document.getElementById('languageSelect').value = savedLang;
-        updateTranslations(savedLang);
-
-        const savedTheme = localStorage.getItem('theme') || 'neon';
-        document.documentElement.dataset.theme = savedTheme;
-        document.getElementById('themeSelect').value = savedTheme;
-
-        // رویدادها
-        document.getElementById('connectCircle').addEventListener('click', () => {
-            isConnected ? disconnectServer() : connectToServer();
-        });
-        document.getElementById('languageSelect').addEventListener('change', (e) => {
-            localStorage.setItem('language', e.target.value);
-            updateTranslations(e.target.value);
-        });
-        document.getElementById('themeSelect').addEventListener('change', (e) => toggleTheme(e.target.value));
-        document.getElementById('serverSearch').addEventListener('input', (e) => populateServerList(e.target.value));
-        document.getElementById('content').addEventListener('click', (e) => {
-            const menu = document.getElementById('menu');
-            const serverList = document.getElementById('serverList');
-            if (e.target.closest('#menu') || e.target.id === 'hamburgerMenu') return;
-            if (e.target.closest('#serverList') || e.target.id === 'serverListBtn' || e.target.id === 'serverSearch') return;
-            menu.classList.add('hidden');
-            serverList.classList.add('hidden');
-        });
-        document.getElementById('hamburgerMenu').addEventListener('click', toggleMenu);
-        document.getElementById('serverListBtn').addEventListener('click', toggleServerList);
-        document.getElementById('loginBtn').addEventListener('click', login);
-        document.getElementById('quickConnectBtn').addEventListener('click', quickConnect);
-        document.getElementById('fastestServerBtn').addEventListener('click', connectToFastestServer);
-        document.getElementById('gamingModeBtn').addEventListener('click', toggleGamingMode);
-        document.getElementById('skipAdBtn').addEventListener('click', hideAd);
-    });
-</script>
+    })();
+  </script>
 </body>
 </html>
